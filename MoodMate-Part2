@@ -1,0 +1,260 @@
+#include <iostream>
+#include <string>
+#include <iomanip>
+#include <limits>
+
+using namespace std;
+
+// ==========================================
+// PART 1 & 2: MoodEntry Class Definition
+// ==========================================
+class MoodEntry {
+private:
+    string date;
+    int rating;
+    string note;
+
+public:
+    // Constructors
+    MoodEntry();
+    MoodEntry(string date, int rating, string note);
+
+    // Getters (Accessors)
+    string getDate() const;
+    int getRating() const;
+    string getNote() const;
+    string getMoodLabel() const; // Required Part 2
+
+    // Setters (Mutators)
+    void setDate(string date);
+    void setRating(int rating);
+    void setNote(string note);
+
+    // Output Function
+    void printEntry() const;
+};
+
+// --- MoodEntry Implementation ---
+MoodEntry::MoodEntry() : date(""), rating(1), note("") {}
+
+MoodEntry::MoodEntry(string date, int rating, string note) {
+    setDate(date);
+    setRating(rating);
+    setNote(note);
+}
+
+void MoodEntry::setDate(string date) {
+    this->date = date;
+}
+
+void MoodEntry::setRating(int rating) {
+    // Rating Validation: must be between 1 and 5
+    if (rating >= 1 && rating <= 5) {
+        this->rating = rating;
+    } else {
+        this->rating = 1; // Fallback safe default
+    }
+}
+
+void MoodEntry::setNote(string note) {
+    this->note = note;
+}
+
+string MoodEntry::getDate() const { return date; }
+int MoodEntry::getRating() const { return rating; }
+string MoodEntry::getNote() const { return note; }
+
+// Part 2: Map rating values to mood words
+string MoodEntry::getMoodLabel() const {
+    if (rating == 1) return "Very Bad";
+    if (rating == 2) return "Bad";
+    if (rating == 3) return "Okay";
+    if (rating == 4) return "Good";
+    if (rating == 5) return "Great";
+    return "Unknown";
+}
+
+// Updated print format to match Example Program Run
+void MoodEntry::printEntry() const {
+    cout << "Date: " << date << "\n";
+    cout << "Mood Rating: " << rating << "\n";
+    cout << "Mood: " << getMoodLabel() << "\n";
+    cout << "Note: " << note << "\n";
+}
+
+
+// ==========================================
+// PART 3 & 4: MoodTracker Class Definition
+// ==========================================
+class MoodTracker {
+private:
+    MoodEntry entries[20];
+    int entryCount;
+
+public:
+    MoodTracker();
+    void addEntry(const MoodEntry& entry);
+    void displayEntries() const;
+    double calculateAverage() const;
+    MoodEntry getHighestMood() const;
+    MoodEntry getLowestMood() const;
+    int getEntryCount() const;
+};
+
+// --- MoodTracker Implementation ---
+MoodTracker::MoodTracker() {
+    entryCount = 0;
+}
+
+void MoodTracker::addEntry(const MoodEntry& entry) {
+    if (entryCount < 20) {
+        entries[entryCount] = entry;
+        entryCount++;
+    }
+}
+
+void MoodTracker::displayEntries() const {
+    for (int i = 0; i < entryCount; i++) {
+        entries[i].printEntry();
+        cout << "\n";
+    }
+}
+
+double MoodTracker::calculateAverage() const {
+    if (entryCount == 0) return 0.0;
+    
+    double total = 0;
+    for (int i = 0; i < entryCount; i++) {
+        total += entries[i].getRating();
+    }
+    return total / entryCount;
+}
+
+MoodEntry MoodTracker::getHighestMood() const {
+    // Start by assuming the first item is the highest
+    int highestIndex = 0;
+    for (int i = 1; i < entryCount; i++) {
+        if (entries[i].getRating() > entries[highestIndex].getRating()) {
+            highestIndex = i;
+        }
+    }
+    return entries[highestIndex];
+}
+
+MoodEntry MoodTracker::getLowestMood() const {
+    // Start by assuming the first item is the lowest
+    int lowestIndex = 0;
+    for (int i = 1; i < entryCount; i++) {
+        if (entries[i].getRating() < entries[lowestIndex].getRating()) {
+            lowestIndex = i;
+        }
+    }
+    return entries[lowestIndex];
+}
+
+int MoodTracker::getEntryCount() const {
+    return entryCount;
+}
+
+
+// ==========================================
+// PART 5 & 6: Main Program & Interactive Menu
+// ==========================================
+int main() {
+    // Part 5: Create exactly one MoodTracker object
+    MoodTracker tracker;
+    int choice = 0;
+
+    while (choice != 6) {
+        // Part 6: Exact visual layout from assignment
+        cout << "=============================\n";
+        cout << "          MOODMATE           \n";
+        cout << "=============================\n";
+        cout << "1. Add Mood Entry\n";
+        cout << "2. View All Entries\n";
+        cout << "3. View Average Mood\n";
+        cout << "4. View Highest Mood\n";
+        cout << "5. View Lowest Mood\n";
+        cout << "6. Exit\n";
+        cout << "-----------------------------\n";
+        cout << "Enter choice: ";
+        
+        if (!(cin >> choice)) {
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            cout << "Invalid choice. Please select 1-6.\n\n";
+            continue;
+        }
+        cin.ignore(numeric_limits<streamsize>::max(), '\n'); // Clear newline
+        cout << "\n";
+
+        if (choice == 1) {
+            if (tracker.getEntryCount() >= 20) {
+                cout << "Tracker is full! Cannot hold more than 20 entries.\n\n";
+                continue;
+            }
+
+            string date, note;
+            int rating;
+
+            cout << "Enter date: ";
+            getline(cin, date);
+
+            cout << "Enter mood rating (1-5): ";
+            while (!(cin >> rating) || rating < 1 || rating > 5) {
+                cout << "Invalid input. Enter a rating between 1 and 5: ";
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            }
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+            cout << "Enter note: ";
+            getline(cin, note);
+
+            // Create temporary object and hand it over to tracker
+            MoodEntry today(date, rating, note);
+            tracker.addEntry(today);
+            cout << "\nMood entry added!\n\n";
+
+        } else if (choice == 2) {
+            if (tracker.getEntryCount() == 0) {
+                cout << "No entries to view.\n\n";
+            } else {
+                tracker.displayEntries();
+            }
+
+        } else if (choice == 3) {
+            if (tracker.getEntryCount() == 0) {
+                cout << "Average Mood: 0.0\n\n";
+            } else {
+                cout << fixed << setprecision(1);
+                cout << "Average Mood: " << tracker.calculateAverage() << "\n\n";
+            }
+
+        } else if (choice == 4) {
+            if (tracker.getEntryCount() == 0) {
+                cout << "No entries recorded yet.\n\n";
+            } else {
+                cout << "----- Highest Mood -----\n";
+                tracker.getHighestMood().printEntry();
+                cout << "\n";
+            }
+
+        } else if (choice == 5) {
+            if (tracker.getEntryCount() == 0) {
+                cout << "No entries recorded yet.\n\n";
+            } else {
+                cout << "----- Lowest Mood -----\n";
+                tracker.getLowestMood().printEntry();
+                cout << "\n";
+            }
+
+        } else if (choice == 6) {
+            cout << "Thank you for using MoodMate!\n";
+        } else {
+            cout << "Invalid choice. Please enter a value from 1 to 6.\n\n";
+        }
+    }
+
+    return 0;
+}
